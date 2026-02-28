@@ -1,7 +1,8 @@
-import { View, Text, KeyboardAvoidingView, Platform, StyleSheet, Image, TextInput, TouchableOpacity, ActivityIndicator, Alert} from 'react-native'
+import { View, Text, StyleSheet, Image, TextInput, TouchableOpacity, ActivityIndicator, Alert } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { Link } from 'expo-router'
 import { useAuthStore } from '../../store/authStore'
+import { KeyboardAwareScrollView } from 'react-native-keyboard-controller'
 
 import { useState } from 'react'
 
@@ -22,50 +23,54 @@ export default function Login () {
 
   return (
     <SafeAreaView style={styles.safeArea}>
-      <KeyboardAvoidingView behavior={Platform.OS === "ios" ? "padding" : "height"} style={styles.container}>
-        <View style={styles.logoContainer}>
-          <Image source={require('../../assets/images/lifevlogger.png')} style={styles.logoImage} />
-        </View>
-        <View style={styles.loginContainer}>
-          <Text style={styles.title}>Welcome Back</Text>
-          <View style={{flexDirection:'row'}}>
-            <Text style={styles.subtitle}>Login to continue to LifeVlogger or </Text>
-            <Link href="/signup" style={[styles.subtitle, {color: '#2563EB'}]}>Sign Up</Link>
+      <KeyboardAwareScrollView
+          contentContainerStyle={styles.scrollContent}
+          keyboardShouldPersistTaps="handled"
+          showsVerticalScrollIndicator={false}
+        >
+          <View style={styles.logoContainer}>
+            <Image source={require('../../assets/images/lifevlogger.png')} style={styles.logoImage} />
           </View>
-          
+          <View style={styles.loginContainer}>
+            <Text style={styles.title}>Welcome Back</Text>
+            <View style={{flexDirection:'row'}}>
+              <Text style={styles.subtitle}>Login to continue to LifeVlogger or </Text>
+              <Link href="/signup" style={[styles.subtitle, {color: '#2563EB'}]}>Sign Up</Link>
+            </View>
+            
 
-          <View style={styles.inputGroup}>
-            <Text style={styles.label}>Email</Text>
-            <TextInput
-              placeholder='Enter your email'
-              placeholderTextColor='#94A3B8'
-              style={styles.input}
-              value={email}
-              onChangeText={setEmail}
-            />
+            <View style={styles.inputGroup}>
+              <Text style={styles.label}>Email</Text>
+              <TextInput
+                placeholder='Enter your email'
+                placeholderTextColor='#94A3B8'
+                style={styles.input}
+                value={email}
+                onChangeText={setEmail}
+              />
+            </View>
+
+            <View style={styles.inputGroup}>
+              <Text style={styles.label}>Password</Text>
+              <TextInput
+                placeholder='Enter your password'
+                placeholderTextColor='#94A3B8'
+                style={styles.input}
+                secureTextEntry={true}
+                value={password}
+                onChangeText={setPassword}
+              />
+            </View>
+
+            <TouchableOpacity style={styles.loginButton} onPress={handleSubmit}>
+              {isLoading ? (
+                <ActivityIndicator size="small" color="#FFFFFF" />
+              ) : (
+                <Text style={styles.loginButtonText}>Login</Text>
+              )}
+            </TouchableOpacity>
           </View>
-
-          <View style={styles.inputGroup}>
-            <Text style={styles.label}>Password</Text>
-            <TextInput
-              placeholder='Enter your password'
-              placeholderTextColor='#94A3B8'
-              style={styles.input}
-              secureTextEntry={true}
-              value={password}
-              onChangeText={setPassword}
-            />
-          </View>
-
-          <TouchableOpacity style={styles.loginButton} onPress={handleSubmit}>
-            {isLoading ? (
-              <ActivityIndicator size="small" color="#FFFFFF" />
-            ) : (
-              <Text style={styles.loginButtonText}>Login</Text>
-            )}
-          </TouchableOpacity>
-        </View>
-      </KeyboardAvoidingView>
+        </KeyboardAwareScrollView>
     </SafeAreaView>
   )
 }
@@ -77,6 +82,10 @@ const styles = StyleSheet.create({
   },
   container: {
     flex: 1,
+  },
+  scrollContent: {
+    flexGrow: 1,
+    paddingBottom: 24,
   },
   logoContainer: {
     alignItems: 'center',

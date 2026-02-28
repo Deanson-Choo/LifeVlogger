@@ -1,9 +1,10 @@
-import { View, Text, KeyboardAvoidingView, Platform, StyleSheet, TextInput, TouchableOpacity, Image, Alert} from 'react-native'
+import { View, Text, StyleSheet, TextInput, TouchableOpacity, Image, Alert, Linking, Keyboard } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { Ionicons } from '@expo/vector-icons'
 import { useState } from 'react'
 import { API_URL } from '../../constants/api'
 import { useAuthStore } from '../../store/authStore'
+import { KeyboardAwareScrollView } from 'react-native-keyboard-controller'
 
 import * as ImagePicker from "expo-image-picker";
 import * as FileSystem from "expo-file-system";
@@ -20,6 +21,33 @@ export default function Create() {
   const { token } = useAuthStore()
 
   const toDataUri = (base64, mimeType = 'image/jpeg') => `data:${mimeType};base64,${base64}`
+
+  // Handles permission flow:
+  // - Re-ask if the OS still allows prompting
+  // - Redirect to Settings if user permanently denied access
+  const ensureMediaPermission = async () => {
+    const current = await ImagePicker.getMediaLibraryPermissionsAsync()
+
+    if (current.granted) {
+      return true
+    }
+
+    if (current.canAskAgain) {
+      const asked = await ImagePicker.requestMediaLibraryPermissionsAsync()
+      return asked.granted
+    }
+
+    Alert.alert(
+      'Permission Needed',
+      'Photo access is disabled. Please enable it in Settings to select an image.',
+      [
+        { text: 'Cancel', style: 'cancel' },
+        { text: 'Open Settings', onPress: () => Linking.openSettings() },
+      ]
+    )
+
+    return false
+  }
 
   const getBase64WithFallback = async (asset) => {
     if (!asset?.uri) {
@@ -61,22 +89,20 @@ export default function Create() {
       setImageBase64(null)
       setSubmitting(false)
     } else {
-      alert("Failed to create post")
+      const errorData = await response.json();
+      alert(errorData.message || "Failed to create post");
       setSubmitting(false)
     }
   }
 
   const pickImage = async () => {
+    Keyboard.dismiss() 
     try {
-      // 1. Handle Permissions First
-      const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
-      
-      if (status !== "granted") {
-        Alert.alert(
-          "Permission Required", 
-          "LifeVlogger needs access to your photos so you can share reviews!"
-        );
-        return;
+      // 1) Permission gate: re-ask if possible, otherwise route user to Settings
+      const hasPermission = await ensureMediaPermission()
+
+      if (!hasPermission) {
+        return
       }
 
       // 2. Launch Picker with optimized settings
@@ -109,40 +135,44 @@ export default function Create() {
 
   return (
     <SafeAreaView style={styles.safeArea}>
-      <KeyboardAvoidingView behavior={Platform.OS === "ios" ? "padding" : "height"} style={styles.container}>
-        <View style={styles.contentWrap}>
-          <Text style={styles.pageTitle}>Create Post</Text>
-          <Text style={styles.pageSubtitle}>Share your moment with the community</Text>
+      <KeyboardAwareScrollView
+          contentContainerStyle={styles.scrollContent}
+          keyboardShouldPersistTaps="handled"
+          showsVerticalScrollIndicator={false}
+        >
+          <View style={styles.contentWrap}>
+            <Text style={styles.pageTitle}>Create Post</Text>
+            <Text style={styles.pageSubtitle}>Document Your Travel Moments</Text>
 
-          <View style={styles.formCard}>
-            <View style={styles.inputGroup}>
-              <Text style={styles.label}>Title</Text>
-              <TextInput placeholder="A catchy title for your moment" placeholderTextColor="#94A3B8" style={styles.input} value={title} onChangeText={setTitle} />
-            </View>
-
-            <View style={styles.inputGroup}>
-              <Text style={styles.label}>Content</Text>
-              <TextInput placeholder="What did you do?" placeholderTextColor="#94A3B8" style={[styles.input, styles.contentInput]} multiline textAlignVertical="top" value={content} onChangeText={setContent} />
-            </View>
-
-            <View style={styles.inputGroup}>
-              <Text style={styles.label}>Image</Text>
-              <View style={styles.imagePickerBox}>
-                {image ? (
-                  <Image source={{ uri: image }} style={styles.previewImage} />
-                ) : (
-                  <TouchableOpacity style={styles.imagePickerButton} onPress={pickImage} disabled={submitting}>
-                    <Ionicons name="image-outline" size={28} color="#64748B" />
-                    <Text style={styles.imagePickerText}>Select an image</Text>
-                  </TouchableOpacity>
-                )}
+            <View style={styles.formCard}>
+              <View style={styles.inputGroup}>
+                <Text style={styles.label}>Title</Text>
+                <TextInput placeholder="A catchy title for your moment" placeholderTextColor="#94A3B8" style={styles.input} value={title} onChangeText={setTitle} />
               </View>
+
+              <View style={styles.inputGroup}>
+                <Text style={styles.label}>Content</Text>
+                <TextInput placeholder="What did you do?" placeholderTextColor="#94A3B8" style={[styles.input, styles.contentInput]} multiline textAlignVertical="top" value={content} onChangeText={setContent} />
+              </View>
+
+              <View style={styles.inputGroup}>
+                <Text style={styles.label}>Image</Text>
+                <View style={styles.imagePickerBox}>
+                  {image ? (
+                    <Image source={{ uri: image }} style={styles.previewImage} />
+                  ) : (
+                    <TouchableOpacity style={styles.imagePickerButton} onPress={pickImage}>
+                      <Ionicons name="image-outline" size={28} color="#64748B" />
+                      <Text style={styles.imagePickerText}>Select an image</Text>
+                    </TouchableOpacity>
+                  )}
+                </View>
             </View>
 
-            <TouchableOpacity onPress={handleSubmit} style={styles.submitButton}><Text style={styles.submitText}>Submit</Text></TouchableOpacity>
+              <TouchableOpacity onPress={handleSubmit} style={styles.submitButton} disabled={submitting}><Text style={styles.submitText}>Submit</Text></TouchableOpacity>
+            </View>
           </View>
-        </View>
-      </KeyboardAvoidingView>
+        </KeyboardAwareScrollView>
     </SafeAreaView>
   )
 }
@@ -154,6 +184,10 @@ const styles = StyleSheet.create({
   },
   container: {
     flex: 1
+  },
+  scrollContent: {
+    flexGrow: 1,
+    paddingBottom: 24
   },
   contentWrap: {
     flex: 1,

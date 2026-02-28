@@ -1,7 +1,8 @@
-import { View, Text, KeyboardAvoidingView, Platform, StyleSheet, TouchableOpacity, Image } from 'react-native'
+import { View, Text, StyleSheet, TouchableOpacity, Image } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { useAuthStore } from '../../store/authStore'
 import { Ionicons } from '@expo/vector-icons'
+import { KeyboardAwareScrollView } from 'react-native-keyboard-controller'
 
 export default function Profile() {
 
@@ -13,7 +14,7 @@ export default function Profile() {
 
   return (
     <SafeAreaView style={styles.safeArea}>
-      <KeyboardAvoidingView behavior={Platform.OS === "ios" ? "padding" : "height"} style={styles.container}>
+      <KeyboardAwareScrollView contentContainerStyle={styles.profileScrollContent} keyboardShouldPersistTaps="handled">
         <View style={styles.contentWrap}>
           <Text style={styles.pageTitle}>Profile</Text>
           <Text style={styles.pageSubtitle}>Manage your account details</Text>
@@ -38,7 +39,7 @@ export default function Profile() {
             <Text style={styles.logoutText}>Logout</Text>
           </TouchableOpacity>
         </View>
-      </KeyboardAvoidingView>
+      </KeyboardAwareScrollView>
     </SafeAreaView>
   )
 }
@@ -53,6 +54,9 @@ const styles = StyleSheet.create({
   },
   container: {
     flex: 1
+  },
+  profileScrollContent: {
+    flexGrow: 1
   },
   contentWrap: {
     flex: 1,

@@ -1,8 +1,9 @@
-import { View, Text, KeyboardAvoidingView, Platform, StyleSheet, Image, TextInput, TouchableOpacity, Alert } from 'react-native'
+import { View, Text, StyleSheet, Image, TextInput, TouchableOpacity, Alert } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { Link } from 'expo-router'
 import { useState } from 'react'
 import { useAuthStore } from '../../store/authStore'
+import { KeyboardAwareScrollView } from 'react-native-keyboard-controller'
 
 
 export default function SignUp () {
@@ -22,58 +23,62 @@ export default function SignUp () {
 
   return (
     <SafeAreaView style={styles.safeArea}>
-      <KeyboardAvoidingView behavior={Platform.OS === "ios" ? "padding" : "height"} style={styles.container}>
-        <View style={styles.logoContainer}>
-          <Image source={require('../../assets/images/lifevlogger.png')} style={styles.logoImage} />
-        </View>
-
-        <View style={styles.signupContainer}>
-          <Text style={styles.title}>Create Account</Text>
-          <View style={{ flexDirection: 'row' }}>
-            <Text style={styles.subtitle}>New to LifeVlogger? Or </Text>
-            <Link href="/" style={[styles.subtitle, { color: '#2563EB' }]}>Login Here</Link>
+      <KeyboardAwareScrollView
+          contentContainerStyle={styles.scrollContent}
+          keyboardShouldPersistTaps="handled"
+          showsVerticalScrollIndicator={false}
+        >
+          <View style={styles.logoContainer}>
+            <Image source={require('../../assets/images/lifevlogger.png')} style={styles.logoImage} />
           </View>
 
-          <View style={styles.inputGroup}>
-            <Text style={styles.label}>Username</Text>
-            <TextInput
-              placeholder='Enter your username'
-              placeholderTextColor='#94A3B8'
-              style={styles.input}
-              autoCapitalize='none'
-              value={username}
-              onChangeText={setUsername}
-            />
-          </View>
+          <View style={styles.signupContainer}>
+            <Text style={styles.title}>Create Account</Text>
+            <View style={{ flexDirection: 'row' }}>
+              <Text style={styles.subtitle}>New to LifeVlogger? Or </Text>
+              <Link href="/" style={[styles.subtitle, { color: '#2563EB' }]}>Login Here</Link>
+            </View>
 
-          <View style={styles.inputGroup}>
-            <Text style={styles.label}>Email</Text>
-            <TextInput
-              placeholder='Enter your email'
-              placeholderTextColor='#94A3B8'
-              style={styles.input}
-              value={email}
-              onChangeText={setEmail}
-            />
-          </View>
+            <View style={styles.inputGroup}>
+              <Text style={styles.label}>Username</Text>
+              <TextInput
+                placeholder='Enter your username'
+                placeholderTextColor='#94A3B8'
+                style={styles.input}
+                autoCapitalize='none'
+                value={username}
+                onChangeText={setUsername}
+              />
+            </View>
 
-          <View style={styles.inputGroup}>
-            <Text style={styles.label}>Password</Text>
-            <TextInput
-              placeholder='Enter your password'
-              placeholderTextColor='#94A3B8'
-              style={styles.input}
-              secureTextEntry={true}
-              value={password}
-              onChangeText={setPassword}
-            />
-          </View>
+            <View style={styles.inputGroup}>
+              <Text style={styles.label}>Email</Text>
+              <TextInput
+                placeholder='Enter your email'
+                placeholderTextColor='#94A3B8'
+                style={styles.input}
+                value={email}
+                onChangeText={setEmail}
+              />
+            </View>
 
-          <TouchableOpacity style={styles.signupButton} onPress={handleSignUp}>
-            <Text style={styles.signupButtonText}>Sign Up</Text>
-          </TouchableOpacity>
-        </View>
-      </KeyboardAvoidingView>
+            <View style={styles.inputGroup}>
+              <Text style={styles.label}>Password</Text>
+              <TextInput
+                placeholder='Enter your password'
+                placeholderTextColor='#94A3B8'
+                style={styles.input}
+                secureTextEntry={true}
+                value={password}
+                onChangeText={setPassword}
+              />
+            </View>
+
+            <TouchableOpacity style={styles.signupButton} onPress={handleSignUp}>
+              <Text style={styles.signupButtonText}>Sign Up</Text>
+            </TouchableOpacity>
+          </View>
+        </KeyboardAwareScrollView>
     </SafeAreaView>
   )
 }
@@ -85,6 +90,10 @@ const styles = StyleSheet.create({
   },
   container: {
     flex: 1,
+  },
+  scrollContent: {
+    flexGrow: 1,
+    paddingBottom: 24,
   },
   logoContainer: {
     alignItems: 'center',

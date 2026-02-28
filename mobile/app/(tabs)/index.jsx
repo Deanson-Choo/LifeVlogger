@@ -1,8 +1,9 @@
 import { API_URL } from '../../constants/api'
-import { View, Text, KeyboardAvoidingView, Platform, StyleSheet, FlatList, Image } from 'react-native'
+import { View, Text, StyleSheet, Image, RefreshControl } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { useEffect, useState } from 'react'
 import { useAuthStore } from '@/store/authStore'
+import { KeyboardAwareScrollView } from 'react-native-keyboard-controller'
 
 export default function Home () {
   const [posts, setPosts] = useState([])
@@ -37,28 +38,27 @@ export default function Home () {
 
   return (
     <SafeAreaView style={styles.safeArea}>
-      <KeyboardAvoidingView behavior={Platform.OS === "ios" ? "padding" : "height"} style={styles.container}>
+      <View style={styles.container}>
         <View style={styles.contentWrap}>
           <View style={styles.header}>
             <Text style={styles.headerTitle}>Your Feed</Text>
             <Text style={styles.headerSubtitle}>See the awesome things you have done</Text>
           </View>
 
-          <FlatList
-            data={posts}
-            keyExtractor={(item) => item._id.toString()}
+          <KeyboardAwareScrollView
             contentContainerStyle={styles.listContent}
             showsVerticalScrollIndicator={false}
-            onRefresh={fetchPosts}
-            refreshing={refreshing}
-            ListEmptyComponent={
+            keyboardShouldPersistTaps="handled"
+            refreshControl={<RefreshControl refreshing={refreshing} onRefresh={fetchPosts} />}
+          >
+            {posts.length === 0 ? (
               <View style={styles.emptyState}>
                 <Text style={styles.emptyTitle}>No posts yet</Text>
-                <Text style={styles.emptyText}>You haven't shared any moments yet. Start creating posts to see them here.</Text>
+                <Text style={styles.emptyText}>You have not shared any moments yet. Start creating posts to see them here.</Text>
               </View>
-            }
-            renderItem ={({ item }) => (
-              <View style={styles.postCard}>
+            ) : (
+              posts.map((item) => (
+              <View key={item._id?.toString() || item.title} style={styles.postCard}>
                 <Text style={styles.postTitle}>{item.title}</Text>
                 <Text style={styles.postContent}>{item.content}</Text>
                 <Image source={{ uri: item.image }} style={styles.postImage} resizeMode="cover" />
@@ -67,10 +67,11 @@ export default function Home () {
                   <Text style={styles.postMetaUser}>{item.user.username}</Text>
                 </View>
               </View>
+              ))
             )}
-            />
+          </KeyboardAwareScrollView>
         </View>
-      </KeyboardAvoidingView>
+      </View>
     </SafeAreaView>
   )
 }
